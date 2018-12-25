@@ -41,7 +41,7 @@ RCT_EXPORT_MODULE()
 {
     NSString * aURLString =  [aNotification userInfo][@"url"];
     NSURL * aURL = [NSURL URLWithString:aURLString];
-    
+
     if ([WXApi handleOpenURL:aURL delegate:self])
     {
         return YES;
@@ -178,7 +178,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                      callBack:(RCTResponseSenderBlock)callback
 {
     NSString *type = aData[RCTWXShareType];
-    
+
     if ([type isEqualToString:RCTWXShareTypeText]) {
         NSString *text = aData[RCTWXShareDescription];
         [self shareToWeixinWithTextMessage:aScene Text:text callBack:callback];
@@ -188,17 +188,17 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
         NSString * mediaTagName = aData[@"mediaTagName"];
         NSString * messageAction = aData[@"messageAction"];
         NSString * messageExt = aData[@"messageExt"];
-        
+
         if (type.length <= 0 || [type isEqualToString:RCTWXShareTypeNews]) {
             NSString * webpageUrl = aData[RCTWXShareWebpageUrl];
             if (webpageUrl.length <= 0) {
                 callback(@[@"webpageUrl required"]);
                 return;
             }
-            
+
             WXWebpageObject* webpageObject = [WXWebpageObject object];
             webpageObject.webpageUrl = webpageUrl;
-            
+
             [self shareToWeixinWithMediaMessage:aScene
                                           Title:title
                                     Description:description
@@ -208,14 +208,14 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                                      ThumbImage:aThumbImage
                                        MediaTag:mediaTagName
                                        callBack:callback];
-            
+
         } else if ([type isEqualToString:RCTWXShareTypeAudio]) {
             WXMusicObject *musicObject = [WXMusicObject new];
             musicObject.musicUrl = aData[@"musicUrl"];
             musicObject.musicLowBandUrl = aData[@"musicLowBandUrl"];
             musicObject.musicDataUrl = aData[@"musicDataUrl"];
             musicObject.musicLowBandDataUrl = aData[@"musicLowBandDataUrl"];
-            
+
             [self shareToWeixinWithMediaMessage:aScene
                                           Title:title
                                     Description:description
@@ -225,12 +225,12 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                                      ThumbImage:aThumbImage
                                        MediaTag:mediaTagName
                                        callBack:callback];
-            
+
         } else if ([type isEqualToString:RCTWXShareTypeVideo]) {
             WXVideoObject *videoObject = [WXVideoObject new];
             videoObject.videoUrl = aData[@"videoUrl"];
             videoObject.videoLowBandUrl = aData[@"videoLowBandUrl"];
-            
+
             [self shareToWeixinWithMediaMessage:aScene
                                           Title:title
                                     Description:description
@@ -240,7 +240,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                                      ThumbImage:aThumbImage
                                        MediaTag:mediaTagName
                                        callBack:callback];
-            
+
         } else if ([type isEqualToString:RCTWXShareTypeImageUrl] ||
                    [type isEqualToString:RCTWXShareTypeImageFile] ||
                    [type isEqualToString:RCTWXShareTypeImageResource]) {
@@ -252,7 +252,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                 } else {
                     WXImageObject *imageObject = [WXImageObject object];
                     imageObject.imageData = UIImagePNGRepresentation(image);
-                    
+
                     [self shareToWeixinWithMediaMessage:aScene
                                                   Title:title
                                             Description:description
@@ -262,17 +262,17 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                                              ThumbImage:aThumbImage
                                                MediaTag:mediaTagName
                                                callBack:callback];
-                    
+
                 }
             }];
         } else if ([type isEqualToString:RCTWXShareTypeFile]) {
             NSString * filePath = aData[@"filePath"];
             NSString * fileExtension = aData[@"fileExtension"];
-            
+
             WXFileObject *fileObject = [WXFileObject object];
             fileObject.fileData = [NSData dataWithContentsOfFile:filePath];
             fileObject.fileExtension = fileExtension;
-            
+
             [self shareToWeixinWithMediaMessage:aScene
                                           Title:title
                                     Description:description
@@ -282,9 +282,9 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                                      ThumbImage:aThumbImage
                                        MediaTag:mediaTagName
                                        callBack:callback];
-            
+
         } else if ([type isEqualToString:RCTWXShareTypeMini]) {
-            
+
             WXMiniProgramObject *miniObject = [WXMiniProgramObject object];
             miniObject.webpageUrl = aData[@"webpageUrl"];
             miniObject.userName = aData[@"userName"];
@@ -292,7 +292,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
             miniObject.withShareTicket = [aData[@"withShareTicket"] boolValue];
             miniObject.miniProgramType = [aData[@"miniProgramType"] integerValue];
             miniObject.hdImageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:aData[@"hdImageData"]]] ;
-            
+
             [self shareToWeixinWithMediaMessage:aScene
                                           Title:title
                                     Description:description
@@ -302,28 +302,32 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
                                      ThumbImage:aThumbImage
                                        MediaTag:mediaTagName
                                        callBack:callback];
-            
+
         } else {
             callback(@[@"message type unsupported"]);
         }
     }
 }
 
-
 - (void)shareToWeixinWithData:(NSDictionary *)aData scene:(int)aScene callback:(RCTResponseSenderBlock)aCallBack
 {
     NSString *imageUrl = aData[RCTWXShareTypeThumbImageUrl];
     if (imageUrl.length && _bridge.imageLoader) {
         NSURL *url = [NSURL URLWithString:imageUrl];
-        NSURLRequest *imageRequest = [NSURLRequest requestWithURL:url];
-        [_bridge.imageLoader loadImageWithURLRequest:imageRequest size:CGSizeMake(100, 100) scale:1 clipped:FALSE resizeMode:RCTResizeModeStretch progressBlock:nil partialLoadBlock:nil
-                                     completionBlock:^(NSError *error, UIImage *image) {
-                                         [self shareToWeixinWithData:aData thumbImage:image scene:aScene callBack:aCallBack];
-                                     }];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
+       if ([aData[RCTWXShareType] isEqualToString:RCTWXShareTypeMini]) {
+            [self shareToWeixinWithData:aData thumbImage:image scene:aScene callBack:aCallBack];
+        }else{
+            NSURLRequest *imageRequest = [NSURLRequest requestWithURL:url];
+            [_bridge.imageLoader loadImageWithURLRequest:imageRequest size:CGSizeMake(100, 100) scale:1 clipped:FALSE resizeMode:RCTResizeModeStretch progressBlock:nil partialLoadBlock:nil
+                                         completionBlock:^(NSError *error, UIImage *image) {
+                                             [self shareToWeixinWithData:aData thumbImage:image scene:aScene callBack:aCallBack];
+                                         }];
+        }
     } else {
         [self shareToWeixinWithData:aData thumbImage:nil scene:aScene callBack:aCallBack];
     }
-    
+
 }
 
 - (void)shareToWeixinWithTextMessage:(int)aScene
@@ -334,7 +338,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
     req.bText = YES;
     req.scene = aScene;
     req.text = text;
-    
+
     BOOL success = [WXApi sendReq:req];
     callback(@[success ? [NSNull null] : INVOKE_FAILED]);
 }
@@ -357,12 +361,12 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
     message.messageAction = action;
     message.mediaTagName = tagName;
     [message setThumbImage:thumbImage];
-    
+
     SendMessageToWXReq* req = [SendMessageToWXReq new];
     req.bText = NO;
     req.scene = aScene;
     req.message = message;
-    
+
     BOOL success = [WXApi sendReq:req];
     callback(@[success ? [NSNull null] : INVOKE_FAILED]);
 }
@@ -379,7 +383,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
     if([resp isKindOfClass:[SendMessageToWXResp class]])
     {
         SendMessageToWXResp *r = (SendMessageToWXResp *)resp;
-        
+
         NSMutableDictionary *body = @{@"errCode":@(r.errCode)}.mutableCopy;
         body[@"errStr"] = r.errStr;
         body[@"lang"] = r.lang;
@@ -394,7 +398,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
         body[@"lang"] = r.lang;
         body[@"country"] =r.country;
         body[@"type"] = @"SendAuth.Resp";
-        
+
         if (resp.errCode == WXSuccess)
         {
             [body addEntriesFromDictionary:@{@"appid":self.appId, @"code" :r.code}];
