@@ -315,8 +315,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
                     WeChatModule.this._share(scene, data, bitmap, callback);
                 }
             });
-        }
-        else if (uri != null) {
+        } else if (uri != null) {
             this._getImage(uri, new ResizeOptions(100, 100), new ImageCallback() {
                 @Override
                 public void invoke(@Nullable Bitmap bitmap) {
